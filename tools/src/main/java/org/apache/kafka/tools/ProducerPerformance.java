@@ -104,13 +104,14 @@ public class ProducerPerformance {
             for (long i = 0; i < numRecords; i++) {
 
                 payload = generateRandomPayload(recordSize, payloadByteList, payload, random);
+                byte[][] keyValue = splitBytes(payload, (byte) ':');
 
                 if (transactionsEnabled && currentTransactionSize == 0) {
                     producer.beginTransaction();
                     transactionStartTime = System.currentTimeMillis();
                 }
 
-                record = new ProducerRecord<>(topicName, payload);
+                record = new ProducerRecord<>(topicName, keyValue[0], keyValue[1]);
 
                 long sendStartMs = System.currentTimeMillis();
                 Callback cb = stats.nextCompletion(sendStartMs, payload.length, stats);
@@ -158,6 +159,19 @@ public class ProducerPerformance {
             }
         }
 
+    }
+
+    static byte[][] splitBytes(byte[] payload, byte c) {
+        for (int i = 0; i < payload.length; i++) {
+            if (payload[i] == c) {
+                byte[] key = Arrays.copyOfRange(payload, 0, i);
+                byte[] value = Arrays.copyOfRange(payload, i + 1, payload.length);
+
+                return new byte[][]{key, value};
+            }
+        }
+
+        return new byte[][]{new byte[]{}, payload};
     }
 
     KafkaProducer<byte[], byte[]> createKafkaProducer(Properties props) {

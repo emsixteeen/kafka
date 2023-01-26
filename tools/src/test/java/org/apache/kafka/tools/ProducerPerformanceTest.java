@@ -41,6 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
@@ -180,5 +181,14 @@ public class ProducerPerformanceTest {
     public void testStatsInitializationWithLargeNumRecords() throws Exception {
         long numRecords = Long.MAX_VALUE;
         assertDoesNotThrow(() -> new ProducerPerformance.Stats(numRecords, 5000));
+    }
+
+    @Test
+    public void testSplitBytes() {
+        byte[] data = "key-12345:value-12345".getBytes();
+        byte[][] keyValues = ProducerPerformance.splitBytes(data, (byte) ':');
+
+        assertArrayEquals(keyValues[0], "key-12345".getBytes());
+        assertArrayEquals(keyValues[1], "value-12345".getBytes());
     }
 }
